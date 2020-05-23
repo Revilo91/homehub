@@ -3,7 +3,7 @@
 // Validated by Gerti
 
 function HmIP_SLO($component) {
-    if ($component['parent_device_interface'] == 'HmIP-RF' && $component['visible'] == 'true') {
+    if ($component['parent_device_interface'] == 'HmIP-RF' && $component['visible'] == 'true' && isset($component['CURRENT_ILLUMINATION'])) {
         $modalId = mt_rand();        
         if (!isset($component['color'])) $component['color'] = '#00CC33';
         return '<div class="hh" style=\'border-left-color: '.$component['color'].'; border-left-style: solid;\'>'
@@ -22,6 +22,6 @@ function HmIP_SLO($component) {
                    . '<span class="info" data-id="' . $component['HIGHEST_ILLUMINATION'] . '" data-component="' . $component['component'] . '" data-datapoint="HIGHEST_ILLUMINATION"></span>'
                  . '</div>'
              . '</div>'
-             . '</div>';             
+             . '</div>'; 
     }
 }

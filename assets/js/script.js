@@ -1,30 +1,30 @@
-$(document).ready(function () {
+$(document).ready(function() {
+    //var statelist = getStateList()
     updateDatapoints();
 
-    $('.set').click(function () {
+    $('.set').click(function() {
         var id = $(this).attr('data-set-id');
         var value = $(this).attr('data-set-value');
         var datapoint = $(this).attr('data-datapoint');
-        
+
         if (datapoint == '4' || datapoint == '20') {
             value = $('[name="' + id + '"]').val();
-        }
-        else if (datapoint === 'DIMLEVEL') {
+        } else if (datapoint == 'DIMLEVEL') {
             value = $('[name="' + id + '"]').val();
-            value = value/100;
+            value = value / 100;
         }
 
         setDatapoint(id, value);
     });
 
-    $('.run').click(function () {
+    $('.run').click(function() {
         var id = $(this).attr('data-run-id');
 
         runProgram(id);
     });
 });
 
-var updateDatapoints = function () {
+var updateDatapoints = function() {
     //192.168.2.6/config/xmlapi/state.cgi?datapoint_id=
 
     // Uhrzeit, Datum und Logo setzen
@@ -32,14 +32,14 @@ var updateDatapoints = function () {
     if (logo !== "") {
         var showlogo = '<img src="' + logo + '" /> &nbsp;&nbsp;&nbsp;';
     } else {
-       var showlogo = "";
+        var showlogo = "";
     }
     $('#time').html(('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2) + ' Uhr');
-    $('#date').html(showlogo + ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth()+1)).slice(-2) + '.' + date.getFullYear());
+    $('#date').html(showlogo + ('0' + date.getDate()).slice(-2) + '.' + ('0' + (date.getMonth() + 1)).slice(-2) + '.' + date.getFullYear());
 
     var id = '';
 
-    $('.info').each(function () {
+    $('.info').each(function() {
         if (id === '') {
             id = $(this).attr('data-id');
         } else {
@@ -51,10 +51,10 @@ var updateDatapoints = function () {
         type: 'GET',
         url: 'http://' + homematicIp + '/config/xmlapi/state.cgi?datapoint_id=' + id,
         dataType: 'xml',
-        success: function (xml) {
+        success: function(xml) {
             $('#flash-error').hide();
 
-            $(xml).find('datapoint').each(function (index) {
+            $(xml).find('datapoint').each(function(index) {
                 var ise_id = $(this).attr('ise_id');
                 var value = $(this).attr('value');
 
@@ -62,6 +62,8 @@ var updateDatapoints = function () {
                 var datapoint = $('[data-id="' + ise_id + '"]').attr('data-datapoint');
                 var unit = $('[data-id="' + ise_id + '"]').attr('data-unit');
                 var valueList = $('[data-id="' + ise_id + '"]').attr('data-valuelist');
+                var icon = $('[data-id="' + ise_id + '"]').attr('data-icon');
+                var dateTime = $('[data-id="' + ise_id + '"]').attr('data-time');
 
                 if (!unit) {
                     unit = '';
@@ -70,7 +72,7 @@ var updateDatapoints = function () {
                     valueList = '';
                 }
 
-                switch (component) {  
+                switch (component) {
                     case 'CUX2801':
                         switch (datapoint) {
                             case 'BLIND_LEVEL':
@@ -189,10 +191,34 @@ var updateDatapoints = function () {
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
                         break;
+
+                    case 'CUX0200':
+                        switch (datapoint) {
+                            case 'STATE':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('Ein');
+                                    $('[data-id="' + ise_id + '"]').addClass('btn-true');
+                                    $('[data-id="' + ise_id + '"]').removeClass('btn-false');
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html('Aus');
+                                    $('[data-id="' + ise_id + '"]').addClass('btn-false');
+                                    $('[data-id="' + ise_id + '"]').removeClass('btn-true');
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
+                                }
+                                break;
+                            default:
+                                $('[data-id="' + ise_id + '"]').html(value);
+                        }
+                        break;
+
+
                     case 'CUX9002':
                         switch (datapoint) {
                             case 'ABS_HUMIDITY':
-                                $('[data-id="' + ise_id + '"]').html((Math.round(value * 10) / 10) + ' %');
+                                $('[data-id="' + ise_id + '"]').html((Math.round(value * 10) / 10) + ' g/m&sup3;');
                                 break;
                             case 'DEW_POINT':
                                 $('[data-id="' + ise_id + '"]').html((Math.round(value * 10) / 10) + ' &deg;C');
@@ -249,6 +275,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'SET_TEMPERATURE':
@@ -266,6 +294,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -295,6 +325,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'SETPOINT':
@@ -312,6 +344,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'VALVE_STATE':
@@ -348,6 +382,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'SET_TEMPERATURE':
@@ -546,7 +582,7 @@ var updateDatapoints = function () {
                         break;
                     case 'HMIP-PSM':
                         switch (datapoint) {
-                            case 'STATE':
+                            case 'CONTROL_MODE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
@@ -570,32 +606,14 @@ var updateDatapoints = function () {
                             case 'FREQUENCY':
                                 $('[data-id="' + ise_id + '"]').html((Math.round(value * 10) / 10) + ' Hz');
                                 break;
+                            case 'STATE':
+                                $('[data-id="' + ise_id + '"]').html(value);
+                                break;
                             case 'POWER':
                                 $('[data-id="' + ise_id + '"]').html('Leistung: ' + (Math.round(value * 10) / 10) + ' W');
                                 break;
                             case 'VOLTAGE':
                                 $('[data-id="' + ise_id + '"]').html((Math.round(value * 10) / 10) + ' V');
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HMIP-PS':
-                        switch (datapoint) {
-                            case 'STATE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
-                                    $('[data-id="' + ise_id + '"]').addClass('btn-true');
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_off.png" />');
-                                    $('[data-id="' + ise_id + '"]').addClass('btn-false');
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-true');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
-                                }
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -627,6 +645,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'POWER':
@@ -765,7 +785,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_90.png" />');
                                 } else if (value === 0) {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_100.png" />');
-                                } 
+                                }
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -775,7 +795,7 @@ var updateDatapoints = function () {
                         switch (datapoint) {
                             case 'LEVEL':
                                 value = (Math.round(value * 1000) / 10);
-                                if (value === 100) {
+                                if (value >= 100) {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_2w.png" />');
                                 } else if (value >= 90) {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_10.png" />');
@@ -797,7 +817,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_90.png" />');
                                 } else if (value === 0) {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_100.png" />');
-                                } 
+                                }
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -829,7 +849,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_90.png" />');
                                 } else if (value === 0) {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_shutter_100.png" />');
-                                } 
+                                }
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -842,8 +862,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -882,8 +901,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -922,8 +940,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -962,8 +979,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -1002,8 +1018,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -1044,8 +1059,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
@@ -1088,8 +1102,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
@@ -1131,6 +1144,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'LEVEL':
@@ -1169,6 +1184,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1192,6 +1209,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-DR':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1213,6 +1237,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-FM':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1234,6 +1265,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-PB-FM':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1255,6 +1293,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HmIP-BSM':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1335,13 +1380,13 @@ var updateDatapoints = function () {
                         switch (datapoint) {
                             case 'STATE':
                                 if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('Ein');
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
                                 } else {
-                                    $('[data-id="' + ise_id + '"]').html('Aus');
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_off.png" />');
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
@@ -1462,6 +1507,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-Pl-2':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1483,6 +1535,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-Pl-CT-R1':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1504,6 +1563,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-Pl-DN-R1':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1525,6 +1591,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-Pl-DN-R5':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1546,6 +1619,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1-Pl':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1588,6 +1668,13 @@ var updateDatapoints = function () {
                         break;
                     case 'HM-LC-Sw1PBU-FM':
                         switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
                             case 'STATE':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/switch_on.png" />');
@@ -1633,6 +1720,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1788,6 +1877,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1893,11 +1984,19 @@ var updateDatapoints = function () {
                     case 'HM-RCV-50':
                         $('[data-id="' + ise_id + '"]').html(value);
                         break;
+                    case 'HmIP-WRC6':
+                        $('[data-id="' + ise_id + '"]').html(value);
+                        break;
+                    case 'HmIP-WRC2':
+                        $('[data-id="' + ise_id + '"]').html(value);
+                        break;
                     case 'HM-SCI-3-FM':
                         switch (datapoint) {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1924,6 +2023,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1955,6 +2056,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -1989,6 +2092,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'MOTION':
@@ -1997,6 +2102,57 @@ var updateDatapoints = function () {
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
                                 }
+                                break;
+                            default:
+                                $('[data-id="' + ise_id + '"]').html(value);
+                        }
+                        break;
+                    case 'HmIP-SPI':
+                        switch (datapoint) {
+                            case 'CURRENT_ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html(value);
+                                break;
+                            case 'ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html(value);
+                                break;
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
+                            case 'PRESENCE_DETECTION_STATE':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
+                                }
+                                break;
+                            default:
+                                $('[data-id="' + ise_id + '"]').html(value);
+                        }
+                        break;
+                    case 'HmIP-SLO':
+                        switch (datapoint) {
+                            case 'LOWBAT':
+                                if (value === 'true') {
+                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
+                                }
+                                break;
+                            case 'CURRENT_ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html(value + ' Lux');
+                                break;
+                            case 'AVERAGE_ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html('&empty;: ' + value + ' Lux');
+                                break;
+                            case 'HIGHEST_ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html('Max: ' + value + ' Lux');
+                                break;
+                            case 'LOWEST_ILLUMINATION':
+                                $('[data-id="' + ise_id + '"]').html('Min: ' + value + ' Lux');
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -2010,6 +2166,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'MOTION':
@@ -2022,193 +2180,47 @@ var updateDatapoints = function () {
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
-                        break;                   
-                    case 'HmIP-SMI':
-                        switch (datapoint) {
-                            case 'CURRENT_ILLUMINATION':
-                                $('[data-id="' + ise_id + '"]').html(Math.round(value));
-                                break;
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'MOTION':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            case 'MOTION_DETECTION_ACTIVE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_active.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_disabled.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
                         break;
-                    case 'HmIP-SMI55':
-                        switch (datapoint) {
-                            case 'CURRENT_ILLUMINATION':
-                                $('[data-id="' + ise_id + '"]').html(Math.round(value));
-                                break;
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'MOTION':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            case 'MOTION_DETECTION_ACTIVE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_active.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_disabled.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-SMI55':
-                        switch (datapoint) {
-                            case 'CURRENT_ILLUMINATION':
-                                $('[data-id="' + ise_id + '"]').html(Math.round(value));
-                                break;
-                            case 'MOTION':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            case 'MOTION_DETECTION_ACTIVE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_active.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_disabled.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIP-SPI':
-                        switch (datapoint) {
-                            case 'CURRENT_ILLUMINATION':
-                                $('[data-id="' + ise_id + '"]').html(Math.round(value));
-                                break;
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'PRESENCE_DETECTION_STATE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            case 'PRESENCE_DETECTION_ACTIVE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_active.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_disabled.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-SPI':
-                        switch (datapoint) {
-                            case 'CURRENT_ILLUMINATION':
-                                $('[data-id="' + ise_id + '"]').html(Math.round(value));
-                                break;
-                            case 'PRESENCE_DETECTION_STATE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            case 'PRESENCE_DETECTION_ACTIVE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_active.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_presence_disabled.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIP-SAM':
-                        switch (datapoint) {
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'MOTION':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_available.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/user_n_a.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break; 
-                    case 'HmIP-SWD':
-                        switch (datapoint) {
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'ALARMSTATE':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/message_bell.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/control_ok.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;                   
                     case 'HM-Sec-RHS':
                         switch (datapoint) {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
-                                switch (value) {
-                                    case '0':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                        break;
-                                    case '1':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_tilt_rd.png" />');
-                                        break;
-                                    case '2':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
-                                        break;
-                                    default:
-                                        $('[data-id="' + ise_id + '"]').html(value);
+                                if (icon === "Window") {
+                                    switch (value) {
+                                        case '0':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
+                                            break;
+                                        case '1':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_tilt_rd.png" />');
+                                            break;
+                                        case '2':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
+                                            break;
+                                        default:
+                                            $('[data-id="' + ise_id + '"]').html(value);
+                                    }
+                                    break;
+                                } else if (icon === "Door") {
+                                    switch (value) {
+                                        case '0':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_gn.png" />');
+                                            break;
+                                        case '1':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_tilt_rd.png" />');
+                                            break;
+                                        case '2':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_open_rd.png" />');
+                                            break;
+                                        default:
+                                            $('[data-id="' + ise_id + '"]').html(value);
+                                    }
+                                    break;
                                 }
                                 break;
                             default:
@@ -2223,18 +2235,36 @@ var updateDatapoints = function () {
                                 }
                                 break;
                             case 'STATE':
-                                switch (value) {
-                                    case '0':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                        break;
-                                    case '1':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_tilt_rd.png" />');
-                                        break;
-                                    case '2':
-                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
-                                        break;
-                                    default:
-                                        $('[data-id="' + ise_id + '"]').html(value);
+                                if (icon === "Window") {
+                                    switch (value) {
+                                        case '0':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
+                                            break;
+                                        case '1':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_tilt_rd.png" />');
+                                            break;
+                                        case '2':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
+                                            break;
+                                        default:
+                                            $('[data-id="' + ise_id + '"]').html(value);
+                                    }
+                                    break;
+                                } else if (icon === "Door") {
+                                    switch (value) {
+                                        case '0':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_gn.png" />');
+                                            break;
+                                        case '1':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_tilt_rd.png" />');
+                                            break;
+                                        case '2':
+                                            $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_open_rd.png" />');
+                                            break;
+                                        default:
+                                            $('[data-id="' + ise_id + '"]').html(value);
+                                    }
+                                    break;
                                 }
                                 break;
                             default:
@@ -2246,6 +2276,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -2264,6 +2296,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -2282,13 +2316,35 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
-                                if (value === 'false') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
+                                if (icon === "Door") {
+                                    if (value === 'false') {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_gn.png" />');
+                                    } else {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_door_open_rd.png" />');
+                                    }
+                                } else if (icon === "Window") {
+                                    if (value === 'false') {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
+                                    } else {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
+                                    }
+                                } else if (icon === "Gate") {
+                                    if (value === 'false') {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_garage_door_100.png" />');
+                                    } else {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_garage.png" />');
+                                    }
+                                } else if (icon === "Roof") {
+                                    if (value === 'false') {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_roof_gr.png" />');
+                                    } else {
+                                        $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_roof_open_2_rd.png" />');
+                                    }
                                 }
                                 break;
                             default:
@@ -2331,24 +2387,6 @@ var updateDatapoints = function () {
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
                         break;
-                    case 'HMIP-SWDM':
-                        switch (datapoint) {
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
-                            case 'STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
                     case 'HmIP-SWDO-PL':
                         switch (datapoint) {
                             case 'LOW_BAT':
@@ -2374,32 +2412,6 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
                                 }
                                 break;
-                            case 'STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-DRI16':
-                        switch (datapoint) {
-                            case 'STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open_rd.png" />');
-                                }
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-DRI32':
-                        switch (datapoint) {
                             case 'STATE':
                                 if (value === '0') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_gn.png" />');
@@ -2463,6 +2475,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -2481,6 +2495,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -2507,6 +2523,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'STATE':
@@ -2566,6 +2584,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             default:
@@ -2583,6 +2603,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'MOTION':
@@ -2604,6 +2626,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'MOTION':
@@ -2676,6 +2700,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'FILLING_LEVEL':
@@ -2719,7 +2745,7 @@ var updateDatapoints = function () {
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
                                 }
-                                break;   
+                                break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
@@ -2735,11 +2761,11 @@ var updateDatapoints = function () {
                             case 'SET_POINT_MODE':
                                 if (value === '0') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //MANU_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //AUTO_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
                                 }
                                 break;
@@ -2760,7 +2786,7 @@ var updateDatapoints = function () {
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
                                 }
-                                break;   
+                                break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
@@ -2776,11 +2802,11 @@ var updateDatapoints = function () {
                             case 'SET_POINT_MODE':
                                 if (value === '0') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //MANU_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //AUTO_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
                                 }
                                 break;
@@ -2801,7 +2827,7 @@ var updateDatapoints = function () {
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
                                 }
-                                break;   
+                                break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
@@ -2817,11 +2843,11 @@ var updateDatapoints = function () {
                             case 'SET_POINT_MODE':
                                 if (value === '0') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //MANU_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //AUTO_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
                                 }
                                 break;
@@ -2837,79 +2863,7 @@ var updateDatapoints = function () {
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
                                 }
-                                break;   
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-WTH':
-                        switch (datapoint) {
-                            case 'HUMIDITY':
-                                $('[data-id="' + ise_id + '"]').html('RF: ' + (Math.round(value * 10) / 10) + ' %');
                                 break;
-                            case 'ACTUAL_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Ist: ' + (Math.round(value * 10) / 10) + ' &deg;C&nbsp;&nbsp;&nbsp;&nbsp;/');
-                                break;
-                            case 'SET_POINT_MODE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                }
-                                break;
-                            case 'ACTIVE_PROFILE':
-                                $('[data-id="' + ise_id + '"]').html(value);
-                                break;
-                            case 'SET_POINT_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Soll: ' + (Math.round(value * 10) / 10) + ' &deg;C&nbsp;&nbsp;&nbsp;&nbsp;/');
-                                break;
-                            case 'WINDOW_STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
-                                }
-                                break;  
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;
-                    case 'HmIPW-STHD':
-                        switch (datapoint) {
-                            case 'HUMIDITY':
-                                $('[data-id="' + ise_id + '"]').html('RF: ' + (Math.round(value * 10) / 10) + ' %');
-                                break;
-                            case 'ACTUAL_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Ist: ' + (Math.round(value * 10) / 10) + ' &deg;C&nbsp;&nbsp;&nbsp;&nbsp;/');
-                                break;
-                            case 'SET_POINT_MODE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                }
-                                break;
-                            case 'ACTIVE_PROFILE':
-                                $('[data-id="' + ise_id + '"]').html(value);
-                                break;
-                            case 'SET_POINT_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Soll: ' + (Math.round(value * 10) / 10) + ' &deg;C&nbsp;&nbsp;&nbsp;&nbsp;/');
-                                break;
-                            case 'WINDOW_STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
-                                }
-                                break;  
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
@@ -2922,11 +2876,11 @@ var updateDatapoints = function () {
                             case 'SET_POINT_MODE':
                                 if (value === '0') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //MANU_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
+                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id) - 10); //AUTO_MODE
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
                                 }
                                 break;
@@ -2942,71 +2896,16 @@ var updateDatapoints = function () {
                                 } else {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
                                 }
-                                break; 
+                                break;
                             case 'LOW_BAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
                                 }
-                                break;  
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;  
-                    case 'HmIP-eTRV-2':
-                        switch (datapoint) {
-                            case 'ACTUAL_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Ist: ' + (Math.round(value * 10) / 10) + ' &deg;C&nbsp;&nbsp;&nbsp;&nbsp;/');
                                 break;
-                            case 'SET_POINT_MODE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_automatic.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //MANU_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/time_manual_mode.png" />');
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-id', parseInt(ise_id)-10); //AUTO_MODE
-                                    $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                }
-                                break;
-                            case 'ACTIVE_PROFILE':
-                                $('[data-id="' + ise_id + '"]').html(value);
-                                break;
-                            case 'SET_POINT_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Soll: ' + (Math.round(value * 10) / 10));
-                                break;
-                            case 'WINDOW_STATE':
-                                if (value === '0') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w.png" />');
-                                } else {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/fts_window_1w_open.png" />');
-                                }
-                                break; 
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;  
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
                         }
                         break;
-                    case 'HmIP-STHO':
-                        switch (datapoint) {
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break; 
-                            case 'HUMIDITY':
-                                $('[data-id="' + ise_id + '"]').html('Feuchte: ' + (Math.round(value * 10) / 10) + ' %');
-                                break;
-                            case 'ACTUAL_TEMPERATURE':
-                                $('[data-id="' + ise_id + '"]').html('Temperatur: ' + (Math.round(value * 10) / 10) + ' &deg;C');
-                                break;
-                            default:
-                                $('[data-id="' + ise_id + '"]').html(value);
-                        }
-                        break;    
                     case 'HM-WDC7000':
                         switch (datapoint) {
                             case 'AIR_PRESSURE':
@@ -3018,6 +2917,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3035,6 +2936,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3055,6 +2958,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'RAIN_COUNTER':
@@ -3088,11 +2993,6 @@ var updateDatapoints = function () {
                         break;
                     case 'HmIP-SWO-B':
                         switch (datapoint) {
-                            case 'LOW_BAT':
-                                if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
-                                }
-                                break;
                             case 'ILLUMINATION':
                                 $('[data-id="' + ise_id + '"]').html('Helligkeit: ' + (Math.round(value * 10) / 10) + ' Lux');
                                 break;
@@ -3117,6 +3017,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3131,6 +3033,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3145,6 +3049,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3162,6 +3068,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3179,6 +3087,8 @@ var updateDatapoints = function () {
                             case 'LOWBAT':
                                 if (value === 'true') {
                                     $('[data-id="' + ise_id + '"]').html('<img src="../assets/icons/measure_battery_25.png" />');
+                                } else {
+                                    $('[data-id="' + ise_id + '"]').html("")
                                 }
                                 break;
                             case 'TEMPERATURE':
@@ -3231,6 +3141,15 @@ var updateDatapoints = function () {
                                 break;
                             case 'VALUE':
                                 $('[data-id="' + ise_id + '"]').html(Math.round(value * 10) / 10);
+                                break;
+                            default:
+                                $('[data-id="' + ise_id + '"]').html(value);
+                        }
+                        break;
+                    case 'HM-Sen-LI-O':
+                        switch (datapoint) {
+                            case 'LUX':
+                                $('[data-id="' + ise_id + '"]').html(value + ' Lux');
                                 break;
                             default:
                                 $('[data-id="' + ise_id + '"]').html(value);
@@ -3318,8 +3237,7 @@ var updateDatapoints = function () {
                                 if (value > 0) {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-true');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-false');
-                                }
-                                else {
+                                } else {
                                     $('[data-id="' + ise_id + '"]').addClass('btn-false');
                                     $('[data-id="' + ise_id + '"]').removeClass('btn-true');
                                 }
@@ -3394,23 +3312,22 @@ var updateDatapoints = function () {
                                 // Yes/No
                                 var invert_color = $('[data-id="' + ise_id + '"]').attr('data-invert-color');
                                 var indicator_mode = $('[data-id="' + ise_id + '"]').attr('data-indicator-mode');
-                                
+
                                 var off_type = "false";
                                 var on_type = "true";
                                 if (indicator_mode === "on") {
                                     if (invert_color === "false") off_type = "off";
                                     else on_type = "off";
-                                }
-                                else if (indicator_mode === "off") {
+                                } else if (indicator_mode === "off") {
                                     if (invert_color === "false") on_type = "off";
                                     else off_type = "off";
                                 }
-                                
+
                                 if (value === 'true') {
-                                    $('[data-id="' + ise_id + '"]').html(valueList.split(';')[parseInt(1)]);                                    
+                                    $('[data-id="' + ise_id + '"]').html(valueList.split(';')[parseInt(1)]);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '0');
-                                    
+
                                     if (invert_color === 'false') {
                                         $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
                                         $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
@@ -3422,7 +3339,7 @@ var updateDatapoints = function () {
                                     $('[data-id="' + ise_id + '"]').html(valueList.split(';')[parseInt(0)]);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-id', ise_id);
                                     $('[data-id="' + ise_id + '"]').attr('data-set-value', '1');
-                                    
+
                                     if (invert_color === 'false') {
                                         $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
                                         $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
@@ -3445,83 +3362,77 @@ var updateDatapoints = function () {
                                 var indicator = $('[data-id="' + ise_id + '"]').attr('data-indicator');
                                 var indicator_mode = $('[data-id="' + ise_id + '"]').attr('data-indicator-mode');
                                 var invert_color = $('[data-id="' + ise_id + '"]').attr('data-invert-color');
-                                                               
+
                                 if (indicator !== "-1") {
-                                  // Liste suchen und zerlegen
-                                  var res = indicator.search(",");
-                                  if (res > -1) {
-                                    var indarray = indicator.split(';');
-                                    for (var i = 0; i < indarray.length; i++){
-                                      var indicator_array = indarray[i].split(',');
-                                      if (value === indicator_array[0].trim()){
-                                        if (indicator_array[1].trim() === "true") {
-                                           var on_type = "true";
-                                           var off_type = "false";
-                                           var snd_off_type = "off";
-                                           var trd_off_type = "warn";
+                                    // Liste suchen und zerlegen
+                                    var res = indicator.search(",");
+                                    if (res > -1) {
+                                        var indarray = indicator.split(';');
+                                        for (var i = 0; i < indarray.length; i++) {
+                                            var indicator_array = indarray[i].split(',');
+                                            if (value === indicator_array[0].trim()) {
+                                                if (indicator_array[1].trim() === "true") {
+                                                    var on_type = "true";
+                                                    var off_type = "false";
+                                                    var snd_off_type = "off";
+                                                    var trd_off_type = "warn";
+                                                } else if (indicator_array[1].trim() === "false") {
+                                                    var on_type = "false";
+                                                    var off_type = "true";
+                                                    var snd_off_type = "off";
+                                                    var trd_off_type = "warn";
+                                                } else if (indicator_array[1].trim() === "warn") {
+                                                    var on_type = "warn";
+                                                    var off_type = "true";
+                                                    var snd_off_type = "false";
+                                                    var trd_off_type = "off";
+                                                } else {
+                                                    var on_type = "off";
+                                                    var off_type = "false";
+                                                    var snd_off_type = "true";
+                                                    var trd_off_type = "warn";
+                                                }
+                                                break;
+                                            } else if ((i + 1) === indarray.length) {
+                                                var on_type = "off";
+                                                var off_type = "false";
+                                                var snd_off_type = "true";
+                                                var trd_off_type = "warn";
+                                            }
                                         }
-                                        else if (indicator_array[1].trim() === "false") {
-                                           var on_type = "false";
-                                           var off_type = "true";
-                                           var snd_off_type = "off";
-                                           var trd_off_type = "warn";
-                                        }
-                                        else if (indicator_array[1].trim() === "warn") {
-                                           var on_type = "warn";
-                                           var off_type = "true";
-                                           var snd_off_type = "false";
-                                           var trd_off_type = "off";
-                                        }
-                                        else {
-                                           var on_type = "off";
-                                           var off_type = "false";
-                                           var snd_off_type = "true";
-                                           var trd_off_type = "warn";
-                                        }
-                                        break;
-                                      }
-                                      else if ((i+1) === indarray.length) {
-                                        var on_type = "off";
-                                        var off_type = "false";
-                                        var snd_off_type = "true";
-                                        var trd_off_type = "warn";
-                                      }
-                                    }
-                                    $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + snd_off_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + trd_off_type);
-                                  }
-                                  else {                                
-                                    var off_type = "false";
-                                    var on_type = "true";
-                                    if (indicator_mode === "on") {
-                                        if (invert_color === "false") off_type = "off";
-                                        else on_type = "off";
-                                    }
-                                    else if (indicator_mode === "off") {
-                                        if (invert_color === "false") on_type = "off";
-                                        else off_type = "off";
-                                    }
-                                    
-                                    if (value === indicator) {
-                                        if (invert_color === 'false') {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                        } else {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
-                                        } 
+                                        $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + snd_off_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + trd_off_type);
                                     } else {
-                                        if (invert_color === 'false') {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                        var off_type = "false";
+                                        var on_type = "true";
+                                        if (indicator_mode === "on") {
+                                            if (invert_color === "false") off_type = "off";
+                                            else on_type = "off";
+                                        } else if (indicator_mode === "off") {
+                                            if (invert_color === "false") on_type = "off";
+                                            else off_type = "off";
+                                        }
+
+                                        if (value === indicator) {
+                                            if (invert_color === 'false') {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                            } else {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                            }
                                         } else {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                        } 
-                                    } 
-                                  }
+                                            if (invert_color === 'false') {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                            } else {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                            }
+                                        }
+                                    }
                                 }
                                 if (valueList !== '') {
                                     $('[data-id="' + ise_id + '"]').html(valueList.split(';')[parseInt(value)]);
@@ -3532,90 +3443,84 @@ var updateDatapoints = function () {
                                 var indicator = $('[data-id="' + ise_id + '"]').attr('data-indicator');
                                 var indicator_mode = $('[data-id="' + ise_id + '"]').attr('data-indicator-mode');
                                 var invert_color = $('[data-id="' + ise_id + '"]').attr('data-invert-color');
-                                
+
                                 var off_type = "false";
                                 var on_type = "true";
                                 if (indicator_mode === "on") {
                                     if (invert_color === "false") off_type = "off";
                                     else on_type = "off";
-                                }
-                                else if (indicator_mode === "off") {
+                                } else if (indicator_mode === "off") {
                                     if (invert_color === "false") on_type = "off";
                                     else off_type = "off";
                                 }
-                                 
+
                                 if (indicator !== "-1") {
-                                  // Liste suchen und zerlegen
-                                  var res = indicator.search(",");
-                                  if (res > -1) {
-                                    var indarray = indicator.split(';');
-                                    for (var i = 0; i < indarray.length; i++){
-                                      var indicator_array = indarray[i].split(',');
-                                      var patt = new RegExp(indicator_array[0].trim());
-                                      var res = patt.test(value);
-                                      if (res === true){
-                                        if (indicator_array[1].trim() === "true") {
-                                           var on_type = "true";
-                                           var off_type = "false";
-                                           var snd_off_type = "off";
-                                           var trd_off_type = "warn";
+                                    // Liste suchen und zerlegen
+                                    var res = indicator.search(",");
+                                    if (res > -1) {
+                                        var indarray = indicator.split(';');
+                                        for (var i = 0; i < indarray.length; i++) {
+                                            var indicator_array = indarray[i].split(',');
+                                            var patt = new RegExp(indicator_array[0].trim());
+                                            var res = patt.test(value);
+                                            if (res === true) {
+                                                if (indicator_array[1].trim() === "true") {
+                                                    var on_type = "true";
+                                                    var off_type = "false";
+                                                    var snd_off_type = "off";
+                                                    var trd_off_type = "warn";
+                                                } else if (indicator_array[1].trim() === "false") {
+                                                    var on_type = "false";
+                                                    var off_type = "true";
+                                                    var snd_off_type = "off";
+                                                    var trd_off_type = "warn";
+                                                } else if (indicator_array[1].trim() === "warn") {
+                                                    var on_type = "warn";
+                                                    var off_type = "true";
+                                                    var snd_off_type = "false";
+                                                    var trd_off_type = "off";
+                                                } else {
+                                                    var on_type = "off";
+                                                    var off_type = "false";
+                                                    var snd_off_type = "true";
+                                                    var trd_off_type = "warn";
+                                                }
+                                                break;
+                                            } else if ((i + 1) === indarray.length) {
+                                                var on_type = "off";
+                                                var off_type = "false";
+                                                var snd_off_type = "true";
+                                                var trd_off_type = "warn";
+                                            }
                                         }
-                                        else if (indicator_array[1].trim() === "false") {
-                                           var on_type = "false";
-                                           var off_type = "true";
-                                           var snd_off_type = "off";
-                                           var trd_off_type = "warn";
-                                        }
-                                        else if (indicator_array[1].trim() === "warn") {
-                                           var on_type = "warn";
-                                           var off_type = "true";
-                                           var snd_off_type = "false";
-                                           var trd_off_type = "off";
-                                        }
-                                        else {
-                                           var on_type = "off";
-                                           var off_type = "false";
-                                           var snd_off_type = "true";
-                                           var trd_off_type = "warn";
-                                        }                                        
-                                        break;
-                                      }                                     
-                                      else if ((i+1) === indarray.length) {
-                                        var on_type = "off";
-                                        var off_type = "false";
-                                        var snd_off_type = "true";
-                                        var trd_off_type = "warn";                                        
-                                      }
-                                    }
-                                    $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + snd_off_type);
-                                    $('[data-id="' + ise_id + '"]').removeClass('btn-' + trd_off_type);
-                                  }
-                                  else {  
-                                    var patt = new RegExp(indicator);
-                                    var res = patt.test(value);
-  
-                                    if (res === true) {
-                                        if (invert_color === 'false') {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                        } else {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
-                                        } 
+                                        $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + snd_off_type);
+                                        $('[data-id="' + ise_id + '"]').removeClass('btn-' + trd_off_type);
                                     } else {
-                                        if (invert_color === 'false') {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                        var patt = new RegExp(indicator);
+                                        var res = patt.test(value);
+
+                                        if (res === true) {
+                                            if (invert_color === 'false') {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                            } else {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                            }
                                         } else {
-                                            $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
-                                            $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
-                                        } 
+                                            if (invert_color === 'false') {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + off_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + on_type);
+                                            } else {
+                                                $('[data-id="' + ise_id + '"]').addClass('btn-' + on_type);
+                                                $('[data-id="' + ise_id + '"]').removeClass('btn-' + off_type);
+                                            }
+                                        }
                                     }
-                                  }
                                 }
-                                
+
                                 if (unit !== '') {
                                     $('[data-id="' + ise_id + '"]').html(value + ' ' + unit);
                                 } else {
@@ -3631,52 +3536,93 @@ var updateDatapoints = function () {
                         }
                         break;
                     default:
-                        $('[data-id="' + ise_id + '"]').html(value);
+                        console.log(component + " not found!!!!")
+                        $('[data-id="' + ise_id + '"]').html("!!!!!!!!!!!!!!!" + component + "<br>" + value);
                 }
+                // if (typeof dateTime !== 'undefined') {
+                //     var lastValue = $('[data-id="' + ise_id + '"]').html();
+                //     if (lastValue !== "") {
+                //         $('[data-id="' + ise_id + '"]').html(lastValue + '<span style="font-size:10px">' + '&nbsp;&nbsp;&nbsp;' + dateTime + '</span><br/>');
+                //     }
+                // }
             });
 
             //Run update periodically
             var timer = window.setTimeout(updateDatapoints, timerMiliseconds);
         },
         //other code
-        error: function () {
+        error: function() {
             $('#flash-error').html('Der Update Prozess wurde unterbrochen.').show();
 
             //Run update periodically
             var timer = window.setTimeout(updateDatapoints, timerMiliseconds);
         }
     });
+
+    getTime(id);
 };
 
-var setDatapoint = function (id, value) {
+var setDatapoint = function(id, value) {
     $.ajax({
         type: 'GET',
         url: 'http://' + homematicIp + '/config/xmlapi/statechange.cgi?ise_id=' + id + '&new_value=' + escape(value),
         dataType: 'xml',
-        success: function (xml) {
+        success: function(xml) {
             $('#flash-error').hide();
 
             updateDatapoints();
         },
         //other code
-        error: function () {
+        error: function() {
             $('#flash-error').html('Es gab einen Fehler beim Verarbeiten des Reqeusts.').show();
         }
     });
 };
 
-var runProgram = function (id) {
+var runProgram = function(id) {
     $.ajax({
         type: 'GET',
         url: 'http://' + homematicIp + '/config/xmlapi/runprogram.cgi?program_id=' + id,
         dataType: 'xml',
-        success: function (xml) {
+        success: function(xml) {
             $('#flash-error').hide();
 
             updateDatapoints();
         },
         //other code
-        error: function () {
+        error: function() {
+            $('#flash-error').html('Es gab einen Fehler beim Verarbeiten des Reqeusts.').show();
+        }
+    });
+};
+
+var getTime = function(raw_datapoints_id) {
+    var datapoints_id = raw_datapoints_id.split(',');
+    $.ajax({
+        type: 'GET',
+        url: 'http://' + homematicIp + '/config/xmlapi/statelist.cgi',
+        dataType: 'xml',
+        success: function(xml) {
+            $('#flash-error').hide();
+
+            $(xml).find('datapoint').each(function(index) {
+                var ise_id = $(this).attr('ise_id');
+                var value = $(this).attr('value');
+                var timestamp = $(this).attr('timestamp');
+                var date = new Date(timestamp * 1000).toLocaleString();
+                datapoints_id.forEach(datapoint_id => {
+                    if (ise_id === datapoint_id) {
+                        $('[data-id="' + ise_id + '"]').attr('data-time', date);
+                        //var lastValue = $('[data-id="' + ise_id + '"]').html();
+                        //$('[data-id="' + ise_id + '"]').html(lastValue + '<br/><span style="font-size:10px">' + date + '</span>');
+
+                    }
+                });
+
+            });
+        },
+        //other code
+        error: function() {
             $('#flash-error').html('Es gab einen Fehler beim Verarbeiten des Reqeusts.').show();
         }
     });

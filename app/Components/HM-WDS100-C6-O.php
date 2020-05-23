@@ -1,7 +1,7 @@
 <?php
 function HM_WDS100_C6_O($component) {
     if ($component['parent_device_interface'] == 'BidCos-RF' && $component['visible'] == 'true' && isset($component['TEMPERATURE'])) {
-        rif (!isset($component['color'])) $component['color'] = '#00CC33';
+        if (!isset($component['color'])) $component['color'] = '#00CC33';
         return '<div class="hh" style=\'border-left-color: '.$component['color'].'; border-left-style: solid;\'>'
             . '<div class="pull-left"><img src="../assets/icons/' . $component["icon"] . '" class="icon">' . $component['name'] . '</div>'
             . '<div class="pull-right">'
